@@ -12,7 +12,7 @@ public class Alexander {
 
     public static void main(String[] args) throws SQLException {
         con = DriverManager.getConnection(url, user, pwd);
-
+        System.out.println("funktioniert");
         con.close();
     }
 }
