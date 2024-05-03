@@ -1,3 +1,4 @@
+import javax.swing.plaf.nimbus.State;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -19,6 +20,7 @@ public class Alexander {
         con = DriverManager.getConnection(url, user, pwd);
         generate(5, 0.1);
         matMult();
+        matMultDBMS();
         con.close();
     }
 
@@ -60,11 +62,11 @@ public class Alexander {
         staB.execute(dropB);
 
         Statement staCreA = con.createStatement();
-        String createA = "create table A (i integer, j integer, val integer);";  // TODO: change val integer to double
+        String createA = "create table A (i integer, j integer, val integer, primary key (i, j));";  // TODO: change val integer to double
         staCreA.execute(createA);
 
         Statement staCreB = con.createStatement();
-        String createB = "create table B (i integer, j integer, val integer);"; // TODO: change val integer to double
+        String createB = "create table B (i integer, j integer, val integer, primary key (i, j));"; // TODO: change val integer to double
         staCreB.execute(createB);
 
 
@@ -132,6 +134,16 @@ public class Alexander {
             }
             System.out.println();
         }
+    }
+
+    public static void matMultDBMS() throws SQLException {
+        Statement stCreC = con.createStatement();
+        String createC = "CREATE TEMPORARY TABLE C (i integer, j integer, sum integer);";  // TODO: change to double
+        stCreC.execute(createC);
+
+        Statement stInsertRes = con.createStatement();
+        String insertRes = "INSERT INTO C SELECT A.i, B.j, SUM(A.val*B.val) FROM A, B WHERE A.j = B.i GROUP BY A.i, B.j;";
+        stInsertRes.execute(insertRes);
     }
 
 }
