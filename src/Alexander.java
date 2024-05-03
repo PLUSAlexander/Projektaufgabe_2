@@ -11,9 +11,14 @@ public class Alexander {
     private static String pwd = "1234";
     private static Connection con;
 
+    private static int[][] matA = null; // Matrix A
+    private static int[][] matB = null; // Matrix B
+    private static int[][] matC = null; // Matrix C
+
     public static void main(String[] args) throws SQLException {
         con = DriverManager.getConnection(url, user, pwd);
         generate(5, 0.1);
+        matMult();
         con.close();
     }
 
@@ -21,8 +26,8 @@ public class Alexander {
         int m = l + 1;
         int n = l + 1;
 
-        int[][] matA = new int[m][l]; // Matrix A
-        int[][] matB = new int[l][n]; // Matrix B
+        matA = new int[m][l]; // Matrix A
+        matB = new int[l][n]; // Matrix B
 
         for (int i = 0; i < m; i++) { // Mat. A
             for (int j = 0; j < l; j++) {
@@ -80,7 +85,53 @@ public class Alexander {
 
 
 
+        Statement stInsertB = con.createStatement();
+        StringBuilder insertB = new StringBuilder("insert into B (i, j, val) values ");
+        for (int i = 0; i < l; i++) {
+            for (int j = 0; j < n; j++) {
+                if (matB[i][j] != 0) {
+                    insertB.append("(" + (i + 1) + ", " + (j + 1) + ", " + matB[i][j] + ")");
+                    if (i != l - 1 || j != n - 1) {
+                        insertB.append(", ");
+                    }
+                }
+            }
+        }
+        insertB.append(";");
+        stInsertB.execute(insertB.toString());
+
+
+
 
 
     }
+
+    public static void matMult() {
+        int m = matA.length;    // Anzahl der Zeilen in Matrix A
+        int n = matB[0].length; // Anzahl der Spalten in Matrix B
+        int l = matA[0].length; // Anzahl der Spalten in Matrix A / Zeilen in Matrix B
+
+        // Matrix C erstellen mit der Größe m x n
+        matC = new int[m][n];
+
+        // Durchführen der Matrixmultiplikation
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                matC[i][j] = 0; // Initialisiere das Element (i, j) der Matrix C
+                for (int k = 0; k < l; k++) {
+                    matC[i][j] += matA[i][k] * matB[k][j];
+                }
+            }
+        }
+
+        // Ausgabe der Ergebnismatrix C
+        System.out.println("Matrix C (Result of A * B):");
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                System.out.print(matC[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+
 }
