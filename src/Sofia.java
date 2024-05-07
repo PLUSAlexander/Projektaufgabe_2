@@ -16,9 +16,9 @@ public class Sofia {
     public static void main(String[] args) throws SQLException {
         con = DriverManager.getConnection(url, user, pwd);
 
-        generate(6, 0.1);
-        matMulti();
-        matMultiDBMS();
+        //generate(6, 0.1);
+        //matMulti();
+        //matMultiDBMS();
 
         con.close();
     }
@@ -59,6 +59,24 @@ public class Sofia {
                 }
             }
         }
+
+
+        /* System.out.println("\nMatrix A: ");
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < l; j++) {
+                System.out.print(matA[i][j] + "     ");
+            }
+            System.out.println();
+        } */
+
+        /* System.out.println("\nMatrix B: ");
+        for (int i = 0; i < l; i++) {
+            for (int j = 0; j < n; j++) {
+                System.out.print(matB[i][j] + "     ");
+            }
+            System.out.println();
+        } */
+
 
         //System.out.println(Arrays.deepToString(matA));
         //System.out.println(Arrays.deepToString(matB));
@@ -141,7 +159,7 @@ public class Sofia {
         System.out.println("\nMatrix C (Result of A * B): ");
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
-                System.out.print(matC[i][j] + " ");
+                System.out.print(matC[i][j] + "     ");
             }
             System.out.println();
         }
