@@ -16,9 +16,11 @@ public class Sofia {
     public static void main(String[] args) throws SQLException {
         con = DriverManager.getConnection(url, user, pwd);
 
-        //generate(6, 0.1);
-        //matMulti();
-        //matMultiDBMS();
+        generate(6, 0.1);
+        import_approach1();
+        matMulti();
+        matMultiDBMS();
+        import_approach2();
 
         con.close();
     }
@@ -40,8 +42,7 @@ public class Sofia {
             for (int j = 0; j < l; j++) {
                 if (RANDOM.nextDouble(1.0) < sparsity) {
                     matA[i][j] = 0;
-                }
-                else {
+                } else {
                     matA[i][j] = RANDOM.nextInt(14) + 1;
                 }
             }
@@ -53,12 +54,13 @@ public class Sofia {
             for (int j = 0; j < n; j++) {
                 if (RANDOM.nextDouble(1.0) < sparsity) {
                     matB[i][j] = 0;
-                }
-                else {
+                } else {
                     matB[i][j] = RANDOM.nextInt(14) + 1;
                 }
             }
         }
+
+        System.out.println("Matrix A and B successfully created.");
 
 
         /* System.out.println("\nMatrix A: ");
@@ -80,9 +82,15 @@ public class Sofia {
 
         //System.out.println(Arrays.deepToString(matA));
         //System.out.println(Arrays.deepToString(matB));
+    }
 
 
-        //import to database - create tables
+    public static void import_approach1() throws SQLException {
+        int m = matA.length;
+        int n = matB[0].length;
+        int l = matA[0].length;
+
+        //create tables
         Statement staDropA = con.createStatement();
         String dropA = "drop table if exists A;";
         staDropA.execute(dropA);
@@ -132,11 +140,11 @@ public class Sofia {
         insertB.append(";");
         stInsertB.execute(insertB.toString());
 
-        System.out.println("Matrix A and B successfully created and imported.");
+        System.out.println("Matrix A and B successfully imported.");
     }
 
 
-
+    //Ansatz 0
     public static void matMulti() {
         int m = matA.length;    //# rows in Matrix A
         int n = matB[0].length; //# columns in Matrix B
@@ -163,10 +171,11 @@ public class Sofia {
             }
             System.out.println();
         }
+        System.out.println("\n");
     }
 
 
-
+    //Ansatz 1
     public static void matMultiDBMS() throws SQLException {
         Statement stCreC = con.createStatement();
         String createC = "CREATE TEMPORARY TABLE C (i integer, j integer, sum double precision);";
@@ -175,5 +184,77 @@ public class Sofia {
         Statement stInsertRes = con.createStatement();
         String insertRes = "INSERT INTO C SELECT A.i, B.j, SUM(A.val*B.val) FROM A, B WHERE A.j = B.i GROUP BY A.i, B.j ORDER BY i ASC, j ASC;";
         stInsertRes.execute(insertRes);
+    }
+
+
+
+    //Phase 2
+    public static void import_approach2() throws SQLException {
+        int m = matA.length;
+        int n = matB[0].length;
+        int l = matA[0].length;
+
+       //create tables
+        Statement staDropA = con.createStatement();
+        String dropA = "drop table if exists A_Arr;";
+        staDropA.execute(dropA);
+
+        Statement staDropB = con.createStatement();
+        String dropB = "drop table if exists B_Arr;";
+        staDropB.execute(dropB);
+
+        Statement staCreA = con.createStatement();
+        String createA = "create table A_arr (i integer, row double precision[]);";
+        staCreA.execute(createA);
+
+        Statement staCreB = con.createStatement();
+        String createB = "create table B_arr (j integer, col double precision[]);";
+        staCreB.execute(createB);
+
+
+        //insert values into tables
+        Statement stInsertA = con.createStatement();
+        StringBuilder insertA = new StringBuilder("insert into A_arr (i, row) values ");
+
+        for (int i = 0; i < m; i++) {
+            insertA.append("(").append(i + 1).append(", '{");
+            for (int j = 0; j < l; j++) {
+                insertA.append(matA[i][j]);
+                if (j != l - 1) {
+                    insertA.append(", ");
+                }
+            }
+            insertA.append("}')");
+            if (i != m - 1){
+                insertA.append(", ");
+            }
+        }
+        insertA.append(";");
+        //System.out.println(insertA);
+        stInsertA.execute(insertA.toString());
+
+
+        Statement stInsertB = con.createStatement();
+        StringBuilder insertB = new StringBuilder("insert into B_arr (j, col) values ");
+
+        for (int i = 0; i < n; i++) {
+        insertB.append("(").append(i + 1).append(", '{");
+            for (int j = 0; j < l; j++) {
+                insertB.append(matB[j][i]);
+                if (j != l - 1) {
+                    insertB.append(", ");
+                }
+            }
+            insertB.append("}')");
+            if (i != n - 1){
+                insertB.append(", ");
+            }
+        }
+        insertB.append(";");
+        //System.out.println(insertB);
+        stInsertB.execute(insertB.toString());
+
+        System.out.println("Matrix A and B successfully imported with arrays.");
+
     }
 }
