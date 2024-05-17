@@ -179,7 +179,7 @@ public class Sofia {
     //Ansatz 1
     public static void matMulti_DBMS() throws SQLException {
         Statement stCreC = con.createStatement();
-        String createC = "CREATE TABLE C (i integer, j integer, value double precision);";
+        String createC = "CREATE TEMPORARY TABLE C (i integer, j integer, value double precision);";
         stCreC.execute(createC);
 
         Statement stInsertRes = con.createStatement();
