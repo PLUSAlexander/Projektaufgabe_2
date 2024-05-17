@@ -18,9 +18,10 @@ public class Sofia {
 
         generate(6, 0.1);
         import_approach1();
-        matMulti();
-        matMultiDBMS();
+        matMulti_client();
+        matMulti_DBMS();
         import_approach2();
+        matMulti_UDF();
 
         con.close();
     }
@@ -29,7 +30,7 @@ public class Sofia {
 
     //Phase 1
 
-    public static void generate(int l, double sparsity) throws SQLException {
+    public static void generate(int l, double sparsity) {
         int m = l + 1;
         int n = l + 1;
 
@@ -145,7 +146,7 @@ public class Sofia {
 
 
     //Ansatz 0
-    public static void matMulti() {
+    public static void matMulti_client() {
         int m = matA.length;    //# rows in Matrix A
         int n = matB[0].length; //# columns in Matrix B
         int l = matA[0].length; //# columns in Matrix A = # rows in Matrix B
@@ -176,15 +177,16 @@ public class Sofia {
 
 
     //Ansatz 1
-    public static void matMultiDBMS() throws SQLException {
+    public static void matMulti_DBMS() throws SQLException {
         Statement stCreC = con.createStatement();
-        String createC = "CREATE TEMPORARY TABLE C (i integer, j integer, sum double precision);";
+        String createC = "CREATE TABLE C (i integer, j integer, value double precision);";
         stCreC.execute(createC);
 
         Statement stInsertRes = con.createStatement();
         String insertRes = "INSERT INTO C SELECT A.i, B.j, SUM(A.val*B.val) FROM A, B WHERE A.j = B.i GROUP BY A.i, B.j ORDER BY i ASC, j ASC;";
         stInsertRes.execute(insertRes);
     }
+
 
 
 
@@ -196,11 +198,11 @@ public class Sofia {
 
        //create tables
         Statement staDropA = con.createStatement();
-        String dropA = "drop table if exists A_Arr;";
+        String dropA = "drop table if exists A_arr;";
         staDropA.execute(dropA);
 
         Statement staDropB = con.createStatement();
-        String dropB = "drop table if exists B_Arr;";
+        String dropB = "drop table if exists B_arr;";
         staDropB.execute(dropB);
 
         Statement staCreA = con.createStatement();
@@ -255,6 +257,20 @@ public class Sofia {
         stInsertB.execute(insertB.toString());
 
         System.out.println("Matrix A and B successfully imported with arrays.");
+    }
 
+
+    //Ansatz 2
+    public static void matMulti_UDF() throws SQLException {
+        Statement dropUDFStm = con.createStatement();
+        String dropUDF = "drop function if exists dotproduct(input_row double precision[], input_col double precision[])";
+        dropUDFStm.execute(dropUDF);
+
+        Statement createUDFStm = con.createStatement();
+        String createUDF = "CREATE OR REPLACE FUNCTION dotproduct(input_row double precision[], input_col double precision[]) RETURNS double precision AS $$ DECLARE i int := 1; result double precision := 0; arrlength int; BEGIN arrlength := array_length(input_row, 1); WHILE i <= arrlength LOOP result := result + input_row[i] * input_col[i]; i := i + 1; END LOOP; RETURN result; END; $$ LANGUAGE plpgsql;";
+        createUDFStm.execute(createUDF);
+
+        /*insert following query in postgres ->
+        SELECT a_arr.i, b_arr.j, dotproduct(a_arr.row, b_arr.col) AS value FROM a_arr, b_arr; */
     }
 }
