@@ -17,22 +17,20 @@ public class Alexander {
 
     public static void main(String[] args) throws SQLException {
         con = DriverManager.getConnection(url, user, pwd);
-        /*
-        generate(6, 0.1);
+
+        /*generate(6, 0.1);
         import_approach1();
         matMulti_client();
         matMulti_DBMS();
         import_approach2();
-        matMulti_UDF();
-        */
+        matMulti_UDF();*/
+
         benchmark();
         con.close();
     }
 
     public static void benchmark() throws SQLException{ // MESSKONZEPT
         long exeTime = 0;
-        Statement stInsertRes = con.createStatement();
-        String insertRes = "INSERT INTO C SELECT A.i, B.j, SUM(A.val*B.val) FROM A, B WHERE A.j = B.i GROUP BY A.i, B.j ORDER BY i ASC, j ASC;";
         ArrayList<Integer> lValues = new ArrayList<>();
         ArrayList<Double> exeTimeList = new ArrayList<>();
         int i = 1;
@@ -41,12 +39,11 @@ public class Alexander {
             for (double s = 0.1; s <= 0.9; s += 0.1) {
                 generate(l, s);
                 import_approach1(); // ANSATZ 1 --> im DBMS
-                matMulti_DBMS(); // ANSATZ 1 --> im DBMS
-                import_approach2(); // ANSATZ 2 --> UDF
+                //import_approach2(); // ANSATZ 2 --> UDF
 
                 long startInner = System.currentTimeMillis();
                 //matMulti_client(); // ANSATZ 0 --> Client
-                stInsertRes.execute(insertRes); // ANSATZ 1 --> im DBMS
+                matMulti_DBMS(); // ANSATZ 1 --> im DBMS
                 //matMulti_UDF(); // ANSATZ 2 --> UDF
                 long endInner = System.currentTimeMillis();
 
@@ -241,6 +238,10 @@ public class Alexander {
         Statement stCreC = con.createStatement();
         String createC = "CREATE TEMPORARY TABLE C (i integer, j integer, value double precision);";
         stCreC.execute(createC);
+
+        Statement stInsertRes = con.createStatement();
+        String insertRes = "INSERT INTO C SELECT A.i, B.j, SUM(A.val*B.val) FROM A, B WHERE A.j = B.i GROUP BY A.i, B.j ORDER BY i ASC, j ASC;";
+        stInsertRes.execute(insertRes);
 
     }
 
