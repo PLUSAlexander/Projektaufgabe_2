@@ -18,14 +18,14 @@ public class Alexander {
     public static void main(String[] args) throws SQLException {
         con = DriverManager.getConnection(url, user, pwd);
 
-        /*generate(6, 0.1);
+        generate(6, 0.7);
         import_approach1();
         matMulti_client();
         matMulti_DBMS();
         import_approach2();
-        matMulti_UDF();*/
+        matMulti_UDF();
 
-        benchmark();
+        //benchmark();
         con.close();
     }
 
@@ -35,16 +35,16 @@ public class Alexander {
         ArrayList<Double> exeTimeList = new ArrayList<>();
         int i = 1;
 
-        for (int l = 8; l <= 512; l *= 2) {
+        for (int l = 256; l <= 512; l *= 2) {
             for (double s = 0.1; s <= 0.9; s += 0.1) {
                 generate(l, s);
-                import_approach1(); // ANSATZ 1 --> im DBMS
-                //import_approach2(); // ANSATZ 2 --> UDF
+                //import_approach1(); // ANSATZ 1 --> im DBMS
+                import_approach2(); // ANSATZ 2 --> UDF
 
                 long startInner = System.currentTimeMillis();
                 //matMulti_client(); // ANSATZ 0 --> Client
-                matMulti_DBMS(); // ANSATZ 1 --> im DBMS
-                //matMulti_UDF(); // ANSATZ 2 --> UDF
+                //matMulti_DBMS(); // ANSATZ 1 --> im DBMS
+                matMulti_UDF(); // ANSATZ 2 --> UDF
                 long endInner = System.currentTimeMillis();
 
                 exeTime += (endInner - startInner);
